@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#101715">
+  <meta name="description" content="Dashboard prototipe TPM Meter untuk melihat telemetri perangkat ESP32.">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/static/icons/icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TPM Meter">
+  <title>TPM Meter · IoT Dashboard</title>
+  <style>
+    :root{color-scheme:dark;--bg:#101715;--panel:#18221f;--line:#2a3934;--text:#edf6f1;--muted:#9aada5;--green:#6ce0a2;--yellow:#ffd36e;--red:#ff7b76;--blue:#8cd7ff}
+    *{box-sizing:border-box}html{min-width:320px}body{margin:0;background:radial-gradient(ellipse at 80% -10%,#203a31 0,transparent 45%),var(--bg);color:var(--text);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;-webkit-text-size-adjust:100%}
+    .wrap{max-width:1160px;margin:auto;padding:clamp(20px,4vw,36px) 20px calc(40px + env(safe-area-inset-bottom))}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:22px}.eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.14em;color:var(--green);font-weight:700}.top h1{font-size:clamp(28px,5vw,42px);line-height:1.08;margin:8px 0}.sub{color:var(--muted);max-width:690px;margin:0}.status{white-space:nowrap;border:1px solid var(--line);border-radius:30px;padding:8px 12px;color:var(--green);font-size:13px}.status.off{color:var(--red)}
+    .top-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:8px}.install-button{min-height:44px}.notice,.offline-notice,.install-help{border-radius:12px;padding:12px 15px;margin:16px 0 20px;font-size:13px}.notice{background:#3b321b;border:1px solid #67572b;color:#ffe4a4}.offline-notice{background:#3d2422;border:1px solid #76413c;color:#ffd2ce}.install-help{background:#17231e;border:1px solid var(--line);color:var(--muted)}.install-help summary{color:var(--text);font-weight:650;cursor:pointer}.install-help p{margin:10px 0 0}.install-help ul{margin:8px 0 0;padding-left:20px}.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.card,.panel{background:linear-gradient(145deg,#1a2521,#151d1a);border:1px solid var(--line);border-radius:16px}.card{padding:18px;min-width:0}.label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}.value{font-weight:750;font-size:28px;margin:8px 0 0;overflow-wrap:anywhere}.unit{font-size:13px;color:var(--muted);font-weight:500}.pill{display:inline-block;margin-top:10px;border-radius:30px;padding:4px 9px;font-size:12px;background:#23332c;color:var(--muted)}.pill.GREEN{color:var(--green);background:#18382a}.pill.YELLOW{color:var(--yellow);background:#3a311b}.pill.RED{color:var(--red);background:#3d2422}.pill.UNKNOWN{color:var(--blue);background:#1d3040}
+    .row{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(260px,1fr);gap:14px;margin-top:14px}.panel{padding:20px;min-width:0}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px}.panel h2{font-size:16px;margin:0}.hint{font-size:12px;color:var(--muted)}canvas{width:100%;height:240px;display:block}.mini{display:grid;gap:12px}.metric{border-bottom:1px solid var(--line);padding-bottom:12px;display:flex;justify-content:space-between;gap:10px}.metric span:first-child{color:var(--muted)}.metric b{text-align:right;overflow-wrap:anywhere}.table-wrap{overflow-x:auto;margin-top:14px;border-radius:16px;-webkit-overflow-scrolling:touch}.table-wrap .panel{padding:0;overflow:hidden}table{border-collapse:collapse;width:100%;min-width:780px}th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);font-size:13px}th{font-weight:600;color:var(--muted);background:#1b2622}tbody tr:last-child td{border-bottom:0}footer{color:var(--muted);font-size:12px;margin-top:20px}.empty{padding:32px;text-align:center;color:var(--muted)}button{background:#21372d;color:var(--green);border:1px solid #315441;border-radius:9px;padding:9px 12px;min-height:44px;font:inherit;font-weight:650;cursor:pointer;touch-action:manipulation}button:hover{background:#2a4639}button:focus-visible,summary:focus-visible{outline:3px solid var(--blue);outline-offset:3px}.table-hint{padding:0 16px 14px}
+    @media(max-width:760px){.wrap{padding:22px 14px calc(32px + env(safe-area-inset-bottom))}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.row{grid-template-columns:1fr;gap:10px}.top{display:block}.top-actions{justify-content:flex-start;margin-top:14px}.status{display:inline-flex;align-items:center;min-height:40px}.value{font-size:24px}.card{padding:15px}.panel{padding:16px}.panel-head{align-items:flex-start;flex-wrap:wrap}canvas{height:210px}.table-wrap .panel-head{padding:16px 16px 0!important}}
+    @media(max-width:380px){.grid{grid-template-columns:1fr 1fr}.label{font-size:11px}.value{font-size:22px}.metric{font-size:13px}}
+    @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="top">
+      <div><div class="eyebrow">Prototipe · Internet of Things</div><h1>TPM Meter</h1><p class="sub">Pantau pembacaan minyak goreng, tren suhu, dan status pengiriman dari perangkat ESP32.</p></div>
+      <div class="top-actions"><div id="connection" class="status" role="status" aria-live="polite">Menghubungkan API…</div><button id="install" class="install-button" type="button" hidden>Pasang aplikasi</button></div>
+    </header>
+    <div id="notice" class="notice" role="note">Penting: nilai demo bersifat sintetis. Estimasi TPM belum divalidasi terhadap alat ukur acuan dan bukan penilaian keamanan pangan.</div>
+    <div id="offlineNotice" class="offline-notice" role="status" aria-live="polite" hidden>Offline: hanya kerangka dashboard yang tersedia. Data API tidak disimpan untuk penggunaan offline; nilai yang terlihat bukan data live. Sambungkan kembali untuk memuat pembacaan terbaru.</div>
+    <details class="install-help"><summary>Petunjuk pemasangan dan dukungan perangkat</summary><p>Pasang hanya dari koneksi aman HTTPS; saat pengembangan, <code>localhost</code> juga diizinkan. Tombol “Pasang aplikasi” muncul bila browser mendukung pemasangan langsung.</p><ul><li><strong>Android / desktop:</strong> buka dashboard di Chrome/Edge melalui HTTPS atau localhost, lalu pilih tombol Pasang aplikasi (atau “Install app” dari menu browser).</li><li><strong>iPhone / iPad:</strong> buka dengan Safari melalui HTTPS, tekan Bagikan, lalu “Tambahkan ke Layar Utama”. iOS tidak menampilkan prompt pemasangan web yang sama seperti Chrome.</li><li>Dashboard tetap memerlukan API untuk pembacaan. Mode offline hanya menyediakan shell UI, bukan riwayat atau telemetri yang tersimpan.</li></ul></details>
+    <section class="grid" aria-label="Ringkasan pembacaan terakhir">
+      <article class="card"><div class="label">Estimasi TPM terakhir</div><div class="value" id="tpm">—<span class="unit"> %</span></div><div id="category" class="pill UNKNOWN">BELUM ADA DATA</div></article>
+      <article class="card"><div class="label">Suhu minyak</div><div class="value" id="temperature">—<span class="unit"> °C</span></div><div class="pill">Sensor temperatur</div></article>
+      <article class="card"><div class="label">Kapasitansi</div><div class="value" id="capacitance">—<span class="unit"> pF</span></div><div class="pill">Pembacaan probe</div></article>
+      <article class="card"><div class="label">Perangkat pada data</div><div class="value" id="device">—</div><div class="pill" id="updated">Belum ada pengukuran</div></article>
+    </section>
+    <section class="row">
+      <article class="panel"><div class="panel-head"><h2>Tren estimasi TPM</h2><button id="refresh" type="button">Muat ulang</button></div><canvas id="chart" role="img" aria-label="Grafik tren estimasi TPM"></canvas><div class="hint">Garis ambang 24% hanya panduan awal proposal—periksa dasar standar dan validasi alat acuan.</div></article>
+      <article class="panel"><div class="panel-head"><h2>Telemetri terbaru</h2><span class="hint" id="source">—</span></div><div class="mini"><div class="metric"><span>Raw kapasitif</span><b id="capRaw">—</b></div><div class="metric"><span>Raw optik</span><b id="optRaw">—</b></div><div class="metric"><span>Jumlah rekaman</span><b id="total">0</b></div><div class="metric"><span>Perangkat</span><b id="device2">—</b></div><div class="metric"><span>Waktu WIB</span><b id="timestamp">—</b></div></div></article>
+    </section>
+    <section class="table-wrap" aria-label="Riwayat pengukuran"><div class="panel"><div class="panel-head" style="padding:18px 18px 0"><h2>Riwayat pengukuran</h2><span class="hint">Terbaru hingga terlama · maks. 100</span></div><table><thead><tr><th scope="col">Waktu</th><th scope="col">Perangkat</th><th scope="col">TPM est.</th><th scope="col">Status</th><th scope="col">Suhu</th><th scope="col">Kapasitansi</th><th scope="col">Optik raw</th><th scope="col">Sumber</th></tr></thead><tbody id="rows"><tr><td colspan="8" class="empty">Belum ada pembacaan. Jalankan simulator atau sambungkan ESP32.</td></tr></tbody></table><div class="hint table-hint">Geser tabel ke samping untuk melihat semua kolom.</div></div></section>
+    <footer>TPM Meter IoT · data demo ditandai terpisah · data TPM acuan tidak dikumpulkan oleh simulator.</footer>
+  </main>
+<script>
+const $ = id => document.getElementById(id);
+const fmt = (v, digits=1) => v === null || v === undefined || !Number.isFinite(Number(v)) ? '—' : Number(v).toFixed(digits);
+const safeText = value => value === null || value === undefined ? '—' : String(value);
+const safeCategory = value => ['GREEN','YELLOW','RED','UNKNOWN'].includes(String(value||'').toUpperCase()) ? String(value||'').toUpperCase() : 'UNKNOWN';
+const dateFmt = value => { if (!value) return '—'; const d = new Date(value); return Number.isNaN(d.getTime()) ? safeText(value) : d.toLocaleString('id-ID',{dateStyle:'short',timeStyle:'short',timeZone:'Asia/Jakarta'}); };
+let latestReadings = [];
+function resetReadings(message='Belum ada pembacaan. Jalankan simulator atau sambungkan ESP32.'){
+  $('tpm').innerHTML='—<span class="unit"> %</span>'; $('temperature').innerHTML='—<span class="unit"> °C</span>'; $('capacitance').innerHTML='—<span class="unit"> pF</span>';
+  $('device').textContent='—'; $('device2').textContent='—'; $('updated').textContent='Belum ada pengukuran'; $('category').textContent='BELUM ADA DATA'; $('category').className='pill UNKNOWN'; $('capRaw').textContent='—'; $('optRaw').textContent='—'; $('timestamp').textContent='—'; $('source').textContent='—'; $('total').textContent='0';
+  $('rows').innerHTML=`<tr><td colspan="8" class="empty">${escapeHtml(message)}</td></tr>`; latestReadings=[]; renderChart([]);
+}
+async function load(){
+  try{
+    const res=await fetch('/api/readings?limit=100',{cache:'no-store',credentials:'same-origin'}); if(!res.ok) throw new Error('API '+res.status);
+    const data=await res.json(); if(!data||!Array.isArray(data.readings)) throw new Error('Respons API tidak valid'); const list=data.readings;
+    $('connection').textContent='API tersambung'; $('connection').classList.remove('off'); $('offlineNotice').hidden=true;
+    if(!list.length){resetReadings();return;}
+    $('total').textContent=list.length;
+    const r=list[0], category=safeCategory(r.category); $('tpm').innerHTML=`${fmt(r.tpm_estimate)}<span class="unit"> %</span>`; $('temperature').innerHTML=`${fmt(r.temperature_c)}<span class="unit"> °C</span>`; $('capacitance').innerHTML=`${fmt(r.capacitance_pf,2)}<span class="unit"> pF</span>`; $('device').textContent=safeText(r.device_id); $('device2').textContent=safeText(r.device_id); $('updated').textContent=dateFmt(r.timestamp); $('category').textContent=category.replace('_',' '); $('category').className='pill '+category; $('capRaw').textContent=safeText(r.capacitance_raw); $('optRaw').textContent=safeText(r.optical_raw); $('timestamp').textContent=dateFmt(r.timestamp); $('source').textContent=r.source==='demo'?'DATA SINTETIS / DEMO':'DATA PERANGKAT';
+    const demo=list.some(x=>x.source==='demo'); $('notice').textContent=demo?'Data sintetis untuk menguji dashboard, bukan hasil pengukuran minyak nyata. Estimasi TPM belum tervalidasi terhadap alat acuan dan bukan penilaian keamanan pangan.':'Nilai TPM hanya dapat dipercaya setelah sensor dan model divalidasi terhadap alat ukur TPM acuan.';
+    $('rows').innerHTML=list.map(x=>{const c=safeCategory(x.category);return `<tr><td>${escapeHtml(dateFmt(x.timestamp))}</td><td>${escapeHtml(safeText(x.device_id))}</td><td>${escapeHtml(fmt(x.tpm_estimate))}</td><td><span class="pill ${c}">${escapeHtml(c)}</span></td><td>${escapeHtml(fmt(x.temperature_c))} °C</td><td>${escapeHtml(fmt(x.capacitance_pf,2))} pF</td><td>${escapeHtml(safeText(x.optical_raw))}</td><td>${escapeHtml(safeText(x.source))}</td></tr>`;}).join(''); latestReadings=list.slice().reverse(); renderChart(latestReadings);
+  }catch(e){$('connection').textContent='API tidak tersambung';$('connection').classList.add('off');$('offlineNotice').hidden=false;resetReadings('Tidak ada data live yang dapat dimuat. Sambungkan ke API lalu muat ulang.');}
+}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function renderChart(list){
+  const canvas=$('chart'),ctx=canvas.getContext('2d'),rect=canvas.getBoundingClientRect(),ratio=window.devicePixelRatio||1; if(!rect.width)return; canvas.width=Math.round(rect.width*ratio);canvas.height=Math.round(rect.height*ratio);ctx.setTransform(ratio,0,0,ratio,0,0);const w=rect.width,h=rect.height,p={l:38,r:12,t:12,b:30};ctx.clearRect(0,0,w,h);
+  const valid=list.filter(x=>x.tpm_estimate!==null&&x.tpm_estimate!==undefined&&Number.isFinite(Number(x.tpm_estimate)));const maxValue=valid.length?Math.max(40,...valid.map(x=>Number(x.tpm_estimate))):40;const scale=Math.max(40,Math.ceil(maxValue/10)*10);const yFor=v=>p.t+(h-p.t-p.b)*(1-Number(v)/scale);
+  ctx.font='11px system-ui';ctx.strokeStyle='#2a3934';ctx.fillStyle='#9aada5';ctx.lineWidth=1;
+  for(let i=0;i<=4;i++){const value=scale*(1-i/4),y=yFor(value);ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(w-p.r,y);ctx.stroke();ctx.fillText(String(Number.isInteger(value)?value:value.toFixed(1)),5,y+4);}
+  const thresholdY=yFor(24);ctx.setLineDash([5,4]);ctx.strokeStyle='#ff7b76';ctx.beginPath();ctx.moveTo(p.l,thresholdY);ctx.lineTo(w-p.r,thresholdY);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#ff9c96';ctx.fillText('24%',w-p.r-30,thresholdY-5);
+  if(!valid.length){ctx.fillStyle='#9aada5';ctx.fillText('Menunggu data TPM tervalidasi / data demo',p.l+8,h/2);return;}
+  const yMax=scale;const plotted=valid.filter(x=>Number(x.tpm_estimate)>=0&&Number(x.tpm_estimate)<=yMax);ctx.strokeStyle='#6ce0a2';ctx.lineWidth=2.5;ctx.beginPath();plotted.forEach((x,i)=>{const px=p.l+(w-p.l-p.r)*(i/Math.max(1,plotted.length-1));i?ctx.lineTo(px,yFor(x.tpm_estimate)):ctx.moveTo(px,yFor(x.tpm_estimate));});ctx.stroke();ctx.fillStyle='#8cd7ff';plotted.forEach((x,i)=>{const px=p.l+(w-p.l-p.r)*(i/Math.max(1,plotted.length-1));ctx.beginPath();ctx.arc(px,yFor(x.tpm_estimate),3,0,Math.PI*2);ctx.fill();});
+}
+$('refresh').addEventListener('click',load);window.addEventListener('resize',()=>renderChart(latestReadings));window.addEventListener('online',load);window.addEventListener('offline',()=>{$('connection').textContent='Offline — API belum diperiksa';$('connection').classList.add('off');$('offlineNotice').hidden=false;resetReadings('Tidak ada data live yang dapat dimuat. Sambungkan ke API lalu muat ulang.');});
+let installPrompt=null;const installButton=$('install');window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event;installButton.hidden=false;});installButton.addEventListener('click',async()=>{if(!installPrompt)return;installButton.disabled=true;try{await installPrompt.prompt();await installPrompt.userChoice;}finally{installPrompt=null;installButton.hidden=true;installButton.disabled=false;}});window.addEventListener('appinstalled',()=>{installPrompt=null;installButton.hidden=true;});
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(()=>{}));}
+load();setInterval(load,10000);
+</script>
+</body>
+</html>
