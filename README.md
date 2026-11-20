@@ -1,8 +1,8 @@
-# TPM Meter IoT — prototipe perangkat dan dashboard
+# TPM Meter IoT — prototipe perangkat dan aplikasi
 
-Prototipe perangkat lunak untuk proposal **Penguji Kelayakan Minyak Goreng (TPM Meter Murah)**. Repo ini menyatukan firmware ESP32, API lokal dengan SQLite, dashboard web, simulator data, serta opsi notifikasi Telegram.
+Prototipe perangkat lunak untuk proposal **Penguji Kelayakan Minyak Goreng (TPM Meter Murah)**. Repo ini menyatukan firmware ESP32, API lokal dengan SQLite, aplikasi web responsif, simulator data, serta opsi notifikasi Telegram. Aplikasi webnya dirancang bisa ditambahkan ke layar utama HP sebagai PWA; ini bukan file APK atau aplikasi yang sudah diterbitkan di toko aplikasi.
 
-> **Status riset:** dashboard dan jalur data dapat dicoba secara lokal. Firmware masih memerlukan hardware nyata dan konfigurasi Wi-Fi. Nilai dari simulator bersifat sintetis. Estimasi TPM belum tervalidasi terhadap alat acuan, sehingga prototipe ini bukan alat keamanan pangan dan tidak boleh dipakai sebagai satu-satunya dasar keputusan mengganti minyak.
+> **Status riset:** aplikasi dan jalur data dapat dicoba secara lokal. Firmware masih memerlukan hardware nyata dan konfigurasi Wi-Fi. Nilai dari simulator bersifat sintetis. Estimasi TPM belum tervalidasi terhadap alat acuan, sehingga prototipe ini bukan alat keamanan pangan dan tidak boleh dipakai sebagai satu-satunya dasar keputusan mengganti minyak.
 
 ## Struktur repo
 
@@ -12,7 +12,15 @@ Dockerfile
 .gitignore
 service/
   app.py                         API HTTP + SQLite + Telegram opsional
-  static/index.html              Dashboard web responsif
+  static/
+    index.html                   Aplikasi dashboard responsif
+    manifest.webmanifest         Identitas dan pengaturan instalasi PWA
+    sw.js                        Service worker untuk aset aplikasi
+    icons/
+      icon-192.png               Ikon aplikasi 192 × 192
+      icon-512.png               Ikon aplikasi 512 × 512
+      icon-192-maskable.png      Ikon adaptif 192 × 192
+      icon-512-maskable.png      Ikon adaptif 512 × 512
 firmware/
   README.md                      Pin, rangkaian dan langkah build ESP32
   platformio.ini                 Konfigurasi PlatformIO
@@ -47,6 +55,19 @@ python3 tools/simulate_device.py --count 30 --interval 0.15
 ```
 
 Data demo ditandai `source=demo`; datanya hanya untuk menguji alur dashboard, bukan hasil eksperimen minyak sungguhan. Untuk mengosongkan riwayat, hentikan server lalu hapus `service/data/readings.db`.
+
+## Buka dan pasang aplikasi di HP
+
+Aplikasi perlu server API yang berjalan dan dapat dijangkau HP. Untuk percobaan di jaringan lokal yang sama, buka `http://ALAMAT-IP-KOMPUTER:8080` di browser HP, dengan mengganti `ALAMAT-IP-KOMPUTER` dengan IP komputer yang menjalankan server. `localhost` di HP menunjuk HP itu sendiri, bukan komputer server. Pastikan firewall dan jaringan mengizinkan akses.
+
+Untuk instalasi PWA dan service worker, gunakan **HTTPS** yang valid; `localhost` adalah pengecualian untuk pengujian di komputer itu sendiri. Alamat HTTP biasa dengan IP LAN umumnya tidak memenuhi syarat instalasi PWA di HP. Repo ini belum menyediakan hosting atau HTTPS siap pakai. Setelah aplikasi tersedia di alamat HTTPS yang bisa diakses HP:
+
+- **Android:** buka aplikasi di Chrome, lalu pilih **Instal aplikasi** atau menu **Tambahkan ke layar utama**, jika pilihan tersebut ditawarkan browser.
+- **iPhone:** buka di Safari, tekan **Bagikan** lalu **Tambahkan ke Layar Utama**; ketersediaan dan istilah menu dapat bergantung pada versi iOS.
+
+Tampilan aplikasi bisa disimpan sebagai shell, tetapi pembacaan dan riwayat membutuhkan server yang dapat dijangkau. Data API tidak disimpan sebagai pembacaan offline; ketika koneksi putus, aplikasi harus menunjukkan status tersebut, bukan menganggap data lama sebagai pembacaan terkini.
+
+**Keamanan:** server default mendengarkan pada semua antarmuka jaringan (`0.0.0.0`). `DEVICE_TOKEN` melindungi pengiriman data POST, tetapi API pembacaan GET belum memiliki autentikasi pengguna. Jangan membuka layanan ke internet dengan hanya mengandalkan token tersebut: tambahkan autentikasi akses-baca, HTTPS, dan pembatasan jaringan sebelum penggunaan di luar jaringan tepercaya. HTTPS tidak otomatis menyembunyikan data dari pengguna yang sudah bisa mengakses endpoint.
 
 ## Sambungkan ESP32
 
@@ -94,6 +115,6 @@ python3 -m unittest discover -s tests -v
 
 ## Status pengembangan
 
-- Selesai di repo lokal: API, SQLite, dashboard, simulator, firmware skeleton, template kalibrasi dan tes dasar.
+- Selesai di repo lokal: API, SQLite, aplikasi web/PWA, simulator, firmware skeleton, template kalibrasi dan tes dasar.
 - Belum dilakukan: pembuatan/perakitan alat, pengukuran sampel nyata, validasi terhadap TPM meter, uji lapangan, dan deployment cloud.
 - Ambang kategori awal untuk model tervalidasi: `GREEN < 20%`, `YELLOW 20–<24%`, `RED >= 24%`. Ambang final perlu dikonfirmasi dari sumber/standar yang berlaku dan arahan pembimbing.
